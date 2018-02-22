@@ -1,31 +1,26 @@
 library(shiny)
 library(DT)
 library(dplyr)
-library(colourpicker)
 library(webshot)
+library(colourpicker)
 source("colors.R", local = TRUE)
-
-# options(shiny.launch.browser=F, shiny.minified=F, shiny.port = 9000)
 
 ui = fluidPage(titlePanel("PIXELIFE"),
   tags$head(tags$style(HTML(css))),
   fluidRow(
     column(2,
       numericInput("size", "Number of pixels", 10), 
-      actionButton("reset", "Clear drawing", class="btn btn-danger"), br(), br(),
-      # actionButton("save", "Download", class="btn btn-info"), br(), br(),
-      colourInput("color", "Select colour", palette = "limited", allowedCols = colors, value = "#A82800")
-      # radioButtons("color", "Choose color", 
-      #   choiceNames = choiceNames,
-      #   choiceValues = choiceValues
-      # )
+      actionButton("reset", "Clear drawing", class = "btn btn-danger"), br(), br(),
+      colourInput("color", "Select colour", palette = "limited",
+        allowedCols = colors, value = "#A82800"),
+      bookmarkButton("bookmark")
     ),
-    column(10, DT::dataTableOutput("drawing"), div(id = "placeholder"))
+    column(10, uiOutput("drawing"), div(id = "placeholder"))
   )
 )
 
 server = function(input, output, session) {
-  rv <- reactiveValues(data = NULL)
+  rv <- reactiveValues(data = NULL, drawTable = TRUE)
   
   observeEvent(input$size, {
     # create data frame for the first time (or reset it if user changes the size)
@@ -60,25 +55,22 @@ server = function(input, output, session) {
     insertUI("#drawing", "afterEnd", div(id = "placeholder"))
   })
   
-  # output$save <- downloadHandler(
-  #   filename = function() {
-  #     paste("drawing.html")
-  #   },
-  #   content = function(file) {
-  #     saveWidget("drawing", file)
-  #   }
-  # )
+  output$drawing <- if (rv$drawData) {
+    DT::renderDataTable(rv$data, server = FALSE)
+    rv$drawData <- FALSE
+  } else {
+    ""
+  }
   
-
-  # observeEvent(input$save, {
-  #   d <- session$clientData
-  #   url <- paste0(d$url_protocol, "//", d$url_hostname, ":", d$url_port)
-  #   webshot(url) #, file = paste0("drawing-", Sys.Date(), ".png", selector = "table"))
-  # })
-
-  output$drawing = DT::renderDataTable({
-    rv$data
-  }, server = FALSE)
+  onBookmark(function(state) {
+    state$values$customCSS <- customCSS
+  })
+  
+  onRestore(function(state) {
+    state$values$rv$drawData <- FALSE
+    customCSS <- state$values$customCSS
+    insertUI("#placeholder", "beforeEnd", tags$style(customCSS))
+  })
 }
 
 shinyApp(ui, server)

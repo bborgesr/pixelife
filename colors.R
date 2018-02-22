@@ -5,15 +5,7 @@ cssTd <- sprintf("td { height: %spx; padding: 0px !important;}", height)
 cssBullet <- "input[type='radio'] { left: -999em; position: absolute; }"
 cssColors <- ".colourpicker-panel {display: block !important;}"
 
-# cssColors <- ".colors{ width: 30px; height: 30px; margin-left: -20px; border: 2px solid black;}"
-
 css <- paste(cssTd, cssBullet, cssColors)
-
-#colors <- list("#ee4035", "#f37736", "#fdf498", "#7bc043", "#0392cf")
-
-# choiceNames <- lapply(choiceValues, function(color) {
-#   div("", style = sprintf("background-color:%s;", color), class = "colors")
-# })
 
 colors <- list(
   "#0004E5", "#FFFFFF", "#EEFFFF", "#F2F2F2",
